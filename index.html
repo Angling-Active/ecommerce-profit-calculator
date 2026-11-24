@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate contribution profit, estimated profit after overheads, break-even CAC and ROAS for a single ecommerce order. UK English, GBP.">
+  <title>Ecommerce Order Profitability Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/calculator.css">
+</head>
+<body>
+  <div class="eopc" id="eopc-root">
+    <div class="eopc-shell">
+      <header class="eopc-brand">
+        <p class="eopc-brand__eyebrow">Order economics</p>
+        <h1 class="eopc-brand__title">Ecommerce Order Profitability Calculator</h1>
+        <p class="eopc-brand__lede">
+          See what a single order really leaves after VAT, discounts, fulfilment, payment fees, ads and allocated overheads — before you scale spend.
+        </p>
+      </header>
+
+      <div class="eopc-layout">
+        <form class="eopc-panel eopc-panel--inputs" id="eopc-form" novalidate>
+          <div class="eopc-panel__head" style="padding: 1rem 1.15rem 0.35rem;">
+            <h2 class="eopc-panel__title">Order inputs</h2>
+            <div class="eopc-actions">
+              <button type="button" class="eopc-btn" id="eopc-reset" aria-describedby="eopc-reset-help">Reset</button>
+            </div>
+          </div>
+          <p id="eopc-reset-help" class="eopc-help" style="padding: 0 1.15rem 0.5rem;">Restores the illustrative mid-market defaults.</p>
+
+          <details class="eopc-details" open>
+            <summary>Revenue &amp; VAT</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-field">
+                <div class="eopc-label-row">
+                  <label class="eopc-label" for="sellingPrice">Product selling price</label>
+                  <span class="eopc-hint" id="sellingPrice-hint">List price before discount</span>
+                </div>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="sellingPrice" name="sellingPrice" aria-describedby="sellingPrice-hint">
+                </div>
+                <p class="eopc-error" id="sellingPrice-error" role="alert"></p>
+              </div>
+
+              <div class="eopc-row">
+                <div class="eopc-field">
+                  <span class="eopc-label" id="discount-label">Discount</span>
+                  <div class="eopc-seg" role="group" aria-labelledby="discount-label">
+                    <label><input type="radio" name="discountMode" value="none"><span>None</span></label>
+                    <label><input type="radio" name="discountMode" value="percent"><span>%</span></label>
+                    <label><input type="radio" name="discountMode" value="amount"><span>£</span></label>
+                  </div>
+                </div>
+                <div class="eopc-field eopc-mode-panel" data-show-when="discountMode:percent" id="discountPercent-panel">
+                  <label class="eopc-label" for="discountPercent">Discount %</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" max="100" id="discountPercent" name="discountPercent">
+                    <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                  </div>
+                </div>
+                <div class="eopc-field eopc-mode-panel" data-show-when="discountMode:amount" id="discountAmount-panel" hidden>
+                  <label class="eopc-label" for="discountAmount">Discount amount</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="discountAmount" name="discountAmount">
+                  </div>
+                </div>
+              </div>
+              <p class="eopc-help">Discount applies to the product selling price only, not postage.</p>
+
+              <div class="eopc-field">
+                <label class="eopc-label" for="postageCharged">Postage charged to customer</label>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="postageCharged" name="postageCharged">
+                </div>
+              </div>
+
+              <div class="eopc-row">
+                <div class="eopc-field">
+                  <span class="eopc-label" id="price-vat-label">Price entry</span>
+                  <div class="eopc-seg" role="group" aria-labelledby="price-vat-label">
+                    <label><input type="radio" name="pricesIncludeVat" value="true"><span>VAT-inclusive</span></label>
+                    <label><input type="radio" name="pricesIncludeVat" value="false"><span>Ex-VAT</span></label>
+                  </div>
+                </div>
+                <div class="eopc-field">
+                  <label class="eopc-label" for="productVatRate">Product VAT rate</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" max="100" id="productVatRate" name="productVatRate">
+                    <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <label class="eopc-check">
+                <input type="checkbox" id="vatRegistered" name="vatRegistered">
+                <span>VAT-registered (remit VAT; treat costs as recoverable ex-VAT)</span>
+              </label>
+              <p class="eopc-note">A single VAT rate is a simplification. Mixed-rate baskets need separate accounting.</p>
+            </div>
+          </details>
+
+          <details class="eopc-details" open>
+            <summary>Cost of goods</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-field">
+                <span class="eopc-label" id="cogs-mode-label">COGS input</span>
+                <div class="eopc-seg" role="group" aria-labelledby="cogs-mode-label">
+                  <label><input type="radio" name="cogsMode" value="actual"><span>Actual COGS</span></label>
+                  <label><input type="radio" name="cogsMode" value="margin"><span>Gross margin %</span></label>
+                </div>
+              </div>
+              <div class="eopc-field eopc-mode-panel" data-show-when="cogsMode:actual">
+                <label class="eopc-label" for="cogs">Cost of goods</label>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="cogs" name="cogs" aria-describedby="cogs-help">
+                </div>
+                <p class="eopc-help" id="cogs-help">Ex-VAT when VAT-registered.</p>
+              </div>
+              <div class="eopc-field eopc-mode-panel" data-show-when="cogsMode:margin" hidden>
+                <label class="eopc-label" for="grossMarginPercent">Gross margin %</label>
+                <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" max="100" id="grossMarginPercent" name="grossMarginPercent" aria-describedby="margin-help">
+                  <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                </div>
+                <p class="eopc-help" id="margin-help">Applied to pre-discount ex-VAT product revenue (list margin, not post-discount).</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="eopc-details" open>
+            <summary>Fulfilment</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-row">
+                <div class="eopc-field">
+                  <label class="eopc-label" for="courierCost">Courier cost</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="courierCost" name="courierCost">
+                  </div>
+                </div>
+                <div class="eopc-field">
+                  <label class="eopc-label" for="packagingCost">Packaging</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="packagingCost" name="packagingCost">
+                  </div>
+                </div>
+              </div>
+              <div class="eopc-row">
+                <div class="eopc-field">
+                  <label class="eopc-label" for="pickPackCost">Pick &amp; pack labour</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="pickPackCost" name="pickPackCost">
+                  </div>
+                </div>
+                <div class="eopc-field">
+                  <label class="eopc-label" for="otherVariableCost">Other variable</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="otherVariableCost" name="otherVariableCost">
+                  </div>
+                </div>
+              </div>
+              <p class="eopc-help">Shipping P/L uses net postage revenue minus courier cost only.</p>
+            </div>
+          </details>
+
+          <details class="eopc-details" open>
+            <summary>Payment processing</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-row">
+                <div class="eopc-field">
+                  <label class="eopc-label" for="paymentFeePercent">Fee %</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="paymentFeePercent" name="paymentFeePercent" aria-describedby="payment-help">
+                    <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                  </div>
+                </div>
+                <div class="eopc-field">
+                  <label class="eopc-label" for="paymentFeeFixed">Fixed fee</label>
+                  <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                    <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                    <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="paymentFeeFixed" name="paymentFeeFixed">
+                  </div>
+                </div>
+              </div>
+              <p class="eopc-help" id="payment-help">Percentage applies to total customer payment (including VAT and postage charged).</p>
+            </div>
+          </details>
+
+          <details class="eopc-details" open>
+            <summary>Marketing / ads</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-field">
+                <span class="eopc-label" id="ads-mode-label">Ad cost method</span>
+                <div class="eopc-seg" role="group" aria-labelledby="ads-mode-label">
+                  <label><input type="radio" name="adsMode" value="cac"><span>Fixed CAC</span></label>
+                  <label><input type="radio" name="adsMode" value="percent"><span>% of revenue</span></label>
+                  <label><input type="radio" name="adsMode" value="roas"><span>ROAS</span></label>
+                </div>
+              </div>
+
+              <div class="eopc-field eopc-mode-panel" data-show-when="adsMode:cac">
+                <label class="eopc-label" for="cac">Customer acquisition cost</label>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="cac" name="cac">
+                </div>
+              </div>
+              <div class="eopc-field eopc-mode-panel" data-show-when="adsMode:percent" hidden>
+                <label class="eopc-label" for="adsPercent">Ads as % of revenue basis</label>
+                <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="adsPercent" name="adsPercent">
+                  <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                </div>
+              </div>
+              <div class="eopc-field eopc-mode-panel" data-show-when="adsMode:roas" hidden>
+                <label class="eopc-label" for="roas">ROAS</label>
+                <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                  <input class="eopc-input" type="number" inputmode="decimal" step="1" min="0" id="roas" name="roas" aria-describedby="roas-help">
+                  <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                </div>
+                <p class="eopc-help" id="roas-help">Enter 400 for 400% (4× return on ad spend).</p>
+              </div>
+
+              <div class="eopc-field">
+                <label class="eopc-label" for="adBasis">Ad revenue basis</label>
+                <select class="eopc-select" id="adBasis" name="adBasis">
+                  <option value="netProduct">Net product after discount (ex-VAT)</option>
+                  <option value="netOrder">Net order revenue (ex-VAT)</option>
+                  <option value="grossProduct">Gross product (customer payment)</option>
+                  <option value="grossOrder">Gross transaction value</option>
+                </select>
+              </div>
+            </div>
+          </details>
+
+          <details class="eopc-details">
+            <summary>Overheads</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-field">
+                <label class="eopc-label" for="overheadPerOrder">Allocated overhead per order</label>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="overheadPerOrder" name="overheadPerOrder" aria-describedby="oh-help">
+                </div>
+                <p class="eopc-help" id="oh-help">Optional fixed allocation. Estimated profit is not statutory net profit.</p>
+              </div>
+              <div class="eopc-field">
+                <label class="eopc-label" for="targetMarginPercent">Target profit margin</label>
+                <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.1" min="0" max="100" id="targetMarginPercent" name="targetMarginPercent" aria-describedby="target-help">
+                  <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                </div>
+                <p class="eopc-help" id="target-help">Of net order revenue — used for target CAC / ROAS.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="eopc-details">
+            <summary>Advanced</summary>
+            <div class="eopc-details__body">
+              <div class="eopc-field">
+                <label class="eopc-label" for="deliveryVatRate">Delivery VAT rate</label>
+                <div class="eopc-input-wrap eopc-input-wrap--suffix">
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" max="100" id="deliveryVatRate" name="deliveryVatRate" aria-describedby="del-vat-help">
+                  <span class="eopc-affix eopc-affix--suffix" aria-hidden="true">%</span>
+                </div>
+                <p class="eopc-help" id="del-vat-help">Defaults to the product VAT rate; override when delivery is taxed differently.</p>
+              </div>
+              <div class="eopc-field">
+                <label class="eopc-label" for="returnsCost">Expected returns cost</label>
+                <div class="eopc-input-wrap eopc-input-wrap--prefix">
+                  <span class="eopc-affix eopc-affix--prefix" aria-hidden="true">£</span>
+                  <input class="eopc-input" type="number" inputmode="decimal" step="0.01" min="0" id="returnsCost" name="returnsCost" aria-describedby="returns-help">
+                </div>
+                <p class="eopc-help" id="returns-help">Probability × average returns cost, as £ per order. Deducted before contribution.</p>
+              </div>
+            </div>
+          </details>
+        </form>
+
+        <aside class="eopc-panel eopc-panel--results" id="eopc-results" aria-live="polite">
+          <div class="eopc-panel__head">
+            <h2 class="eopc-panel__title">Live results</h2>
+          </div>
+
+          <div class="eopc-hero-metrics">
+            <div class="eopc-metric eopc-metric--primary" id="metric-estimated">
+              <span class="eopc-metric__label">Estimated profit after allocated overheads</span>
+              <div class="eopc-metric__value" data-out="estimatedProfit">—</div>
+              <div class="eopc-metric__sub" data-out="estimatedMarginPct">— of net order revenue</div>
+            </div>
+            <div class="eopc-metric" id="metric-contribution">
+              <span class="eopc-metric__label">Contribution profit</span>
+              <div class="eopc-metric__value" data-out="contributionProfit">—</div>
+              <div class="eopc-metric__sub" data-out="contributionMarginPct">—</div>
+            </div>
+            <div class="eopc-metric" id="metric-premkt">
+              <span class="eopc-metric__label">Pre-marketing contribution</span>
+              <div class="eopc-metric__value" data-out="preMarketing">—</div>
+              <div class="eopc-metric__sub" data-out="preMarketingMarginPct">—</div>
+            </div>
+          </div>
+
+          <p class="eopc-alert" id="eopc-alert" hidden></p>
+
+          <h3 class="eopc-section-title">Revenue breakdown</h3>
+          <div class="eopc-bar" aria-hidden="true">
+            <div class="eopc-bar__seg eopc-bar__seg--product" id="bar-product" style="width:0%"></div>
+            <div class="eopc-bar__seg eopc-bar__seg--postage" id="bar-postage" style="width:0%"></div>
+            <div class="eopc-bar__seg eopc-bar__seg--vat" id="bar-vat" style="width:0%"></div>
+          </div>
+          <div class="eopc-legend">
+            <span><i class="eopc-swatch eopc-swatch--product"></i> Product net <strong data-out="productNet">—</strong></span>
+            <span><i class="eopc-swatch eopc-swatch--postage"></i> Postage net <strong data-out="postageNet">—</strong></span>
+            <span><i class="eopc-swatch eopc-swatch--vat"></i> VAT liability <strong data-out="vatLiability">—</strong></span>
+          </div>
+
+          <div class="eopc-kv" style="margin-top:0.75rem;">
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Gross transaction value</span><span class="eopc-kv__val" data-out="grossTransactionValue">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Net order revenue</span><span class="eopc-kv__val" data-out="netOrderRevenue">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Product gross profit</span><span class="eopc-kv__val" data-out="productGrossProfit">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Shipping P/L</span><span class="eopc-kv__val" data-out="shippingPL">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">COGS</span><span class="eopc-kv__val" data-out="cogs">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Fulfilment</span><span class="eopc-kv__val" data-out="fulfilment">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Payment fees</span><span class="eopc-kv__val" data-out="paymentFees">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Advertising spend</span><span class="eopc-kv__val" data-out="adsSpend">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Allocated overheads</span><span class="eopc-kv__val" data-out="overheadPerOrder">—</span></div>
+          </div>
+
+          <h3 class="eopc-section-title">Break-even &amp; targets</h3>
+          <div class="eopc-kv">
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Max break-even CAC</span><span class="eopc-kv__val" data-out="breakEvenCac">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Break-even ROAS</span><span class="eopc-kv__val" data-out="breakEvenRoas">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Target CAC</span><span class="eopc-kv__val" data-out="targetCac">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Target ROAS</span><span class="eopc-kv__val" data-out="targetRoas">—</span></div>
+            <div class="eopc-kv__row"><span class="eopc-kv__key">Ad revenue basis</span><span class="eopc-kv__val" data-out="adBasisValue">—</span></div>
+          </div>
+
+          <h3 class="eopc-section-title">ROAS scenarios</h3>
+          <div class="eopc-table-wrap">
+            <table class="eopc-table" id="eopc-scenarios">
+              <thead>
+                <tr>
+                  <th scope="col">ROAS</th>
+                  <th scope="col">Ad spend</th>
+                  <th scope="col">Est. profit</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </aside>
+      </div>
+
+      <section class="eopc-edu" aria-labelledby="edu-title">
+        <h2 class="eopc-edu__title" id="edu-title">How to read these numbers</h2>
+        <p class="eopc-edu__intro">
+          Contribution and estimated profit answer different questions. Use the stack below to decide when ads are affordable — and when free shipping is quietly destroying margin.
+        </p>
+        <div class="eopc-edu-grid">
+          <article class="eopc-edu-card">
+            <h3>Contribution vs estimated profit</h3>
+            <p><strong>Contribution profit</strong> is what remains after variable costs and advertising. It funds overheads and growth.</p>
+            <p><strong>Estimated profit after allocated overheads</strong> subtracts a per-order slice of fixed costs. It is a management estimate, not statutory net profit.</p>
+          </article>
+          <article class="eopc-edu-card">
+            <h3>Why VAT matters</h3>
+            <p>If you are VAT-registered, a slice of what the customer pays is remitted to HMRC. Margins should be judged on <em>net</em> revenue, not the gross card charge.</p>
+            <p>Non-registered sellers keep the whole payment but cannot reclaim VAT on costs — enter costs as you incur them.</p>
+          </article>
+          <article class="eopc-edu-card">
+            <h3>CAC, ROAS and break-even</h3>
+            <ul>
+              <li><strong>Break-even CAC</strong> is the most you can spend on ads before estimated profit hits zero.</li>
+              <li><strong>Break-even ROAS</strong> is the minimum return on that ad basis to break even.</li>
+              <li>Target figures aim for your chosen margin of net order revenue (default 10%).</li>
+            </ul>
+          </article>
+          <article class="eopc-edu-card">
+            <h3>Common margin traps</h3>
+            <ul>
+              <li>Discounting product while leaving postage and fees unchanged.</li>
+              <li>Free shipping when courier cost exceeds net postage revenue.</li>
+              <li>Judging ads on gross sales while costs and VAT sit off-screen.</li>
+              <li>Ignoring payment fees on the full customer payment.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <footer class="eopc-footer">
+        <p>All calculations run in your browser. Inputs are not sent to a server. Figures are illustrative decision support, not accounting or tax advice.</p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/calc.js"></script>
+  <script src="js/format.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
